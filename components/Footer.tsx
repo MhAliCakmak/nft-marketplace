@@ -4,14 +4,24 @@ import { useTheme } from 'next-themes';
 import images from '../assets';
 import Button from './Button';
 
-const FooterLinks = ({ heading, items, extraClasses }) => (
+interface FooterLinksProps {
+  heading: string;
+  items: string[];
+  extraClasses?: string;
+}
+
+const FooterLinks: React.FC<FooterLinksProps> = ({ heading, items, extraClasses = '' }) => (
   <div className={`flex-1 justify-start items-start ${extraClasses}`}>
     <h3 className="font-poppins dark:text-white text-nft-black-1 font-semibold text-xl mb-10">{heading}</h3>
-    {items.map((item, index) => <p key={item + index} className="font-poppins dark:text-white text-nft-black-1 font-normal text-base cursor-pointer dark:hover:text-nft-gray-1 hover:text-nft-black-1 my-3">{item}</p>)}
+    {items.map((item, index) => (
+      <p key={item + index} className="font-poppins dark:text-white text-nft-black-1 font-normal text-base cursor-pointer dark:hover:text-nft-gray-1 hover:text-nft-black-1 my-3">
+        {item}
+      </p>
+    ))}
   </div>
 );
 
-const Footer = () => {
+const Footer: React.FC = () => {
   const { theme } = useTheme();
 
   return (
@@ -28,7 +38,7 @@ const Footer = () => {
               height={32}
               alt="logo"
             />
-            <p className=" dark:text-white text-nft-dark font-semibold text-lg ml-1">CryptoKet</p>
+            <p className="dark:text-white text-nft-dark font-semibold text-lg ml-1">CryptoKet</p>
           </div>
           <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-base mt-6">Get the latest updates</p>
           <div className="flexBetween md:w-full minlg:w-557 w-357 mt-6 dark:bg-nft-black-2 bg-white border dark:border-nft-black-2 border-nft-gray-2 rounded-md">
@@ -36,8 +46,8 @@ const Footer = () => {
             <div className="flex-initial">
               <Button
                 btnName="Email me"
-                btnType="primary"
                 classStyles="rounded-md"
+                handleClick={() => {}}
               />
             </div>
           </div>
@@ -51,7 +61,7 @@ const Footer = () => {
 
       <div className="flexCenter w-full mt-5 border-t dark:border-nft-black-1 border-nft-gray-1 sm:px-4 px-16">
         <div className="flexBetween flex-row w-full minmd:w-4/5 sm:flex-col mt-7">
-          <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-base">CrpytoKet, Inc. All Rights Reserved</p>
+          <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-base">CryptoKet, Inc. All Rights Reserved</p>
           <div className="flex flex-row sm:mt-4">
             {[images.instagram, images.twitter, images.telegram, images.discord].map((image, index) => (
               <div className="mx-2 cursor-pointer" key={`image ${index}`}>

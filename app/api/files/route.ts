@@ -23,12 +23,12 @@ export async function POST(request: NextRequest) {
             image:uploadImage.IpfsHash
         }
     )
-    await axios.get(
-        `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${uploadData.IpfsHash}`
-    ).then((res)=>{
-        response=res.data
-    })
-    return NextResponse.json(response, { status: 200 });
+    // await axios.get(
+    //     `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${uploadData.IpfsHash}`
+    // ).then((res)=>{
+    //     response=res.data
+    // })
+    return NextResponse.json(uploadData.IpfsHash, { status: 200 });
     
     
   } catch (e) {

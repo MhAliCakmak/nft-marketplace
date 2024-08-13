@@ -165,7 +165,7 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     return contract; // Return contract response
   };
 
-
+  
 
   return (
     <ContractContext.Provider value={{ contract: contractFunction ,

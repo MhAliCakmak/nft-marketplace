@@ -1,51 +1,86 @@
 "use client";
-//@ts-nocheck
-import { useState, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, ChangeEvent } from "react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
 import images from "../../assets";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import { ContractContext } from "@/context";
+import { formatEther, parseEther } from "viem";
 
+interface FormInput {
+  price: string;
+  name: string;
+  description: string;
+}
 
 const CreateNFT = () => {
   const { theme } = useTheme();
-
-  const [imageUrl, setImageUrl] = useState(null);
-  const [imageType, setImageType] = useState(null);
-  const [image, setImage] = useState(null);
-  const [imgName, setImgName] = useState("");
-  const [formInput, setFormInput] = useState({
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageType, setImageType] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [imgName, setImgName] = useState<string>("");
+  const { contract } = useContext(ContractContext);
+  const [formInput, setFormInput] = useState<FormInput>({
     price: "",
     name: "",
     description: "",
   });
 
-  const onImageChange = (event) => {
-    const { type, name } = event.target.files[0];
-    if (event.target.files && event.target.files[0]) {
+  const onImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const { type, name } = file;
       const fileTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif"];
       if (fileTypes.includes(type)) {
-        setImageUrl(URL.createObjectURL(event.target.files[0]));
-        setImageType(event.target.files[0].type);
-        setImage(event.target.files[0]);
+        setImageUrl(URL.createObjectURL(file));
+        setImageType(type);
+        setImage(file);
         setImgName(name);
       } else {
-        alert("Please select an image file (png , gif, jpeg or jpg)");
+        alert("Please select an image file (png, gif, jpeg, or jpg)");
       }
     }
   };
 
+  const handleUpload = async () => {
+    if (!image) {
+      alert("Please upload an image");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("file", image);
+    data.append("name", formInput.name);
+    data.append("description", formInput.description);
+
+    const uploadRequest = await fetch("/api/files", {
+      method: "POST",
+      body: data,
+    });
+
+    const uploadData = await uploadRequest.json();
+    const formatPrice = parseEther(formInput.price);
+    const tx = await contract({
+      functionName: "createToken",
+      methodType: "write",
+      args: [uploadData, formatPrice],
+      values: parseEther("0.0025"),
+    });
+    console.log(tx);
+  };
+
   const fileStyle = useMemo(
     () =>
-      " dark:bg-nft-black-1 bg-white border dark:border-white border-nft-gray-2 flex flex-col items-center p-5 rounded-sm border-dashed",
+      "dark:bg-nft-black-1 bg-white border dark:border-white border-nft-gray-2 flex flex-col items-center p-5 rounded-sm border-dashed",
     []
   );
+
   return (
     <div className="flex justify-center sm:px-4 p-12">
       <div className="w-3/5 md:w-full">
-        <h1 className="font-poppins dark:text-white text-nft-black-1 text-2xl minlg:text-4xl font-semibold  sm:mb-4 flex-1 ">
+        <h1 className="font-poppins dark:text-white text-nft-black-1 text-2xl minlg:text-4xl font-semibold sm:mb-4 flex-1">
           Create new NFT
         </h1>
         <div className="mt-16">
@@ -58,7 +93,7 @@ const CreateNFT = () => {
                 {image ? (
                   <aside>
                     <div>
-                      <img src={imageUrl} alt="asset_file" />
+                      <img src={imageUrl || ""} alt="asset_file" />
                     </div>
                   </aside>
                 ) : (
@@ -96,31 +131,31 @@ const CreateNFT = () => {
             inputType="input"
             title="Name"
             placeholder="NFT Name"
-            handleClick={(e) =>
-              setFormInput({ ...formInput, name: e.target.value })
+            handleClick={(e:any) =>
+              setFormInput({ ...formInput, name: (e.target as HTMLInputElement).value })
             }
           />
           <Input
             inputType="textarea"
             title="Description"
             placeholder="NFT Description"
-            handleClick={(e) =>
-              setFormInput({ ...formInput, description: e.target.value })
+            handleClick={(e:any) =>
+              setFormInput({ ...formInput, description: (e.target as HTMLTextAreaElement).value })
             }
           />
           <Input
             inputType="number"
             title="Price"
-            placeholder="NFT PRice"
-            handleClick={(e) =>
-              setFormInput({ ...formInput, price: e.target.value })
+            placeholder="NFT Price"
+            handleClick={(e:any) =>
+              setFormInput({ ...formInput, price: (e.target as HTMLInputElement).value })
             }
           />
           <div className="mt-7 w-full flex justify-end">
             <Button
               btnName="Create NFT"
               classStyles="rounded-xl"
-              // handleClick={() => createNFT(imageUrl, imageType, formInput)}
+              handleClick={handleUpload}
             />
           </div>
         </div>

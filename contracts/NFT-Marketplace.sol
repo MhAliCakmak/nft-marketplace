@@ -10,19 +10,21 @@ pragma solidity ^0.8.4; // Set the Solidity version to match the Hardhat configu
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @dev Main contract for the NFT marketplace.
  * This contract inherits from ERC721URIStorage, an implementation of the ERC721 standard
  */
-contract NFTMarketplace is ERC721URIStorage {
+contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds; // Counter for tracking NFT token IDs
     Counters.Counter private _itemsSold; // Counter for tracking the number of items sold
 
     // Fee to list an NFT on the marketplace
-    uint256 listingPrice = 0.025 ether;
+    uint256 listingPrice = 0.0025 ether;
 
     // Address of the contract owner, who earns a commission on every item sold
     address payable owner;
@@ -59,9 +61,19 @@ contract NFTMarketplace is ERC721URIStorage {
      * @dev Constructor to set the owner as the contract deployer.
      * Initializes the contract with a name and symbol for the NFT.
      */
-    constructor() ERC721("Metaverse Tokens", "METT") {
+    constructor() ERC721("Crypto Ket", "CKN") {
         owner = payable(msg.sender);
     }
+   
+    /// @dev Modifier to ensure that only the owner can call specific functions.
+    modifier onlyOwner() {
+        require(
+            msg.sender == owner,
+            "Only contract owner can perform this action"
+        );
+        _;
+    }
+
 
     /**
      * @dev Updates the listing price of the contract.
@@ -86,7 +98,7 @@ contract NFTMarketplace is ERC721URIStorage {
      * @param price The initial price for the token in wei.
      * @return The ID of the newly minted token.
      */
-    function createToken(string memory tokenURI, uint256 price) public payable returns (uint) {
+    function createToken(string memory tokenURI, uint256 price) public payable nonReentrant returns (uint) {
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
         _mint(msg.sender, newTokenId);
@@ -127,7 +139,7 @@ contract NFTMarketplace is ERC721URIStorage {
      * @param tokenId The ID of the NFT to be resold.
      * @param price The new price at which the NFT is listed.
      */
-    function resellToken(uint256 tokenId, uint256 price) public payable {
+    function resellToken(uint256 tokenId, uint256 price) public payable nonReentrant {
         require(idToMarketItem[tokenId].owner == msg.sender, "Only the item owner can perform this operation");
         require(msg.value == listingPrice, "Price must be equal to the listing price");
         idToMarketItem[tokenId].sold = false;
@@ -142,7 +154,7 @@ contract NFTMarketplace is ERC721URIStorage {
      * @dev Completes the sale of a marketplace item, transferring ownership and funds.
      * @param tokenId The ID of the NFT being purchased.
      */
-    function createMarketSale(uint256 tokenId) public payable {
+    function createMarketSale(uint256 tokenId) public payable nonReentrant {
         uint price = idToMarketItem[tokenId].price;
         require(msg.value == price, "Please submit the asking price to complete the purchase");
         idToMarketItem[tokenId].owner = payable(msg.sender);
@@ -229,5 +241,48 @@ contract NFTMarketplace is ERC721URIStorage {
             }
         }
         return items;
+    }
+    /// @dev Allows the contract owner to withdraw tokens from the contract.
+    /// @param tokenAddress The address of the token to be withdrawn.
+    /// @param amount The amount of tokens to be withdrawn.
+    function ownerWithdraw(
+        address tokenAddress,
+        uint256 amount
+    ) external onlyOwner nonReentrant {
+        if (isERC20(tokenAddress)) {
+            require(
+                amount <= IERC20(tokenAddress).balanceOf(address(this)),
+                "Not enough balance in the contract"
+            );
+            require(IERC20(tokenAddress).transfer(owner, amount), "Transfer failed");
+        } else if (isERC721(tokenAddress)) {
+            revert(
+                "ERC721 tokens cannot be withdrawn by the contract owner to prevent potential manipulation of users' NFTs"
+            );
+        } else {
+            revert("Unsupported token type");
+        }
+    }
+
+    /// @dev Checks if a given address represents an ERC20 token contract.
+    /// @param tokenAddress The address to be checked.
+    /// @return true if the address represents an ERC20 token contract, false otherwise.
+    function isERC20(address tokenAddress) internal view returns (bool) {
+        uint256 size;
+        assembly {
+            size := extcodesize(tokenAddress)
+        }
+        return size > 0 && IERC20(tokenAddress).totalSupply() > 0;
+    }
+
+    /// @dev Checks if a given address represents an ERC721 token contract.
+    /// @param tokenAddress The address to be checked.
+    /// @return true if the address represents an ERC721 token contract, false otherwise.
+    function isERC721(address tokenAddress) internal view returns (bool) {
+        uint256 size;
+        assembly {
+            size := extcodesize(tokenAddress)
+        }
+        return size > 0 && IERC721(tokenAddress).supportsInterface(0x80ac58cd);
     }
 }
