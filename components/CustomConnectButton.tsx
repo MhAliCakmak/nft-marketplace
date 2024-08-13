@@ -1,5 +1,6 @@
 "use client";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import Button from "./Button";
 export const CustomConnectButton = () => {
   return (
     <ConnectButton.Custom>
@@ -35,43 +36,38 @@ export const CustomConnectButton = () => {
             {(() => {
               if (!connected) {
                 return (
-                  <button
-                    onClick={openConnectModal}
-                    type="button"
-                    className="rounded-lg p-2 bg-white text-[#051517] font-lg text-center text-xl w-full mt-4"
-                  >
-                    Connect Wallet
-                  </button>
+                  <Button
+                    handleClick={openConnectModal}
+                    btnName="Connect Wallet"
+                    classStyles="mx-2 rounded-xl"
+                  />
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <button
-                    onClick={openChainModal}
-                    type="button"
-                    className="rounded-lg p-2 bg-[#dc4f56] text-[#051517] font-lg text-center text-xl w-full mt-4"
-                  >
-                    Wrong network
-                  </button>
+                  <Button
+                    handleClick={openChainModal}
+                    btnName="Wrong Network"
+                    classStyles="mx-2 rounded-xl"
+                  />
                 );
               }
               return (
-                <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ display: "flex"}}>
                   <button
                     onClick={openAccountModal}
                     type="button"
-                    className="rounded-lg p-2 bg-[#4FDC60] text-[#051517] font-lg flex items-center justify-center text-xl w-full mt-4"
+                    className="rounded-xl font-poppins  nft-gradient text-white  flex items-center justify-center minlg:text-lg py-2 px-4 minlg:px-8"
                   >
                     {chain.hasIcon && chain.iconUrl && (
                       <img
                         alt={chain.name ?? "Chain icon"}
                         src={chain.iconUrl}
-                        style={{ width: 24, height: 24 }}
+                        style={{ width: 18, height: 18 }}
                         className="mx-2"
                       />
                     )}
                     {account.displayName}
-                    
                   </button>
                 </div>
               );
