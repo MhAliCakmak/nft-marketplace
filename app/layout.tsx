@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Chakra_Petch } from "next/font/google";
 import "./globals.css";
 import { ContextProvider } from "@/context";
+import Navbar from "@/components/Navbar";
 
 const raleway = Chakra_Petch({
   weight: "500",
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-[#051517]">
+    <html lang="en" >
       <link rel="manifest" href="/manifest.json" />
           <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" />
           <link rel="icon" href="/icons/icon-512x512.png" sizes="512x512" />

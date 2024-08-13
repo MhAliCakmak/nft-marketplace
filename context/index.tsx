@@ -6,6 +6,7 @@ import {
   getDefaultWallets,
   midnightTheme,
   useAddRecentTransaction,
+  useConnectModal,
 } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -24,21 +25,8 @@ import {
 import { blastSepolia } from "wagmi/chains";
 import { ABI, CONTRACT_ADDRESS } from "../constants";
 import { formatEther, recoverMessageAddress } from "viem";
-import { calculateTier } from "@/lib/utils";
 import { Toaster } from "react-hot-toast";
-
-import {
-  getMinterRole,
-  serverGetAndCreateUser,
-  serverRewardsUpdate,
-  serverGetOrCreateQueue,
-  serverGetQueue,
-  serverGetAllUser,
-} from "@/lib/actions/server.action";
-import SpinModal from "../components/ui/modals/SpinModal";
-import MachineModal from "@/components/ui/modals/MachineModal";
-import TransactionModal from "@/components/ui/modals/TransactionModal";
-import { NextUIProvider } from "@nextui-org/react";
+import Navbar from "@/components/Navbar";
 
 // Retrieve default wallets from RainbowKit
 const { wallets } = getDefaultWallets();
@@ -84,7 +72,8 @@ export function ContextProvider({
         <RainbowKitProvider
           modalSize="compact" // Size of modals
           locale="en-US" // Locale setting
-          theme={midnightTheme({ // Theme customization
+          theme={midnightTheme({
+            // Theme customization
             accentColor: "white",
             accentColorForeground: "black",
             borderRadius: "medium",
@@ -92,23 +81,97 @@ export function ContextProvider({
             overlayBlur: "small",
           })}
           showRecentTransactions={true} // Show recent transactions in UI
-          appInfo={{ // Application information
+          appInfo={{
+            // Application information
             appName: "Green Scan Techs",
             learnMoreUrl: "https://green-dashboard.com/",
             disclaimer: Disclaimer, // Disclaimer component
           }}
         >
-          <NextUIProvider> {/* NextUI provider for UI components */}
-            <ContractProvider> {/* Provider for contract-related functionality */}
-              <MachineModal /> {/* Modal component for machine interactions */}
-              <TransactionModal /> {/* Modal component for transaction details */}
-              <SpinModal /> {/* Modal component for spinning */}
-              {children}
-            </ContractProvider>
-          </NextUIProvider>
+          <ContractProvider>
+          <Navbar />
+            {" "}
+            {/* Provider for contract-related functionality */}
+            {children}
+          </ContractProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
 }
 
+export const ContractContext = React.createContext(
+  {} as {
+    contract: (params: ContractFunctionParams) => Promise<any>; // Function to interact with contract
+    currentAddress: `0x${string}`; // Current
+  }
+);
+
+// Parameters for contract functions
+interface ContractFunctionParams {
+  functionName: string; // Name of the contract function
+  methodType: string; // Type of method (read or write)
+  args?: any; // Arguments for the function
+  values?: bigint; // Values for the function
+}
+
+// ContractProvider component to interact with contract
+export function ContractProvider({ children }: { children: ReactNode }) {
+  const publicClient = usePublicClient(); // Hook for public client
+  const { data: walletClient } = useWalletClient(); // Hook for wallet client
+  const { address: currentAddress } = useAccount(); // Hook for current account address
+  const addRecentTransaction = useAddRecentTransaction(); // Hook for adding recent transaction
+  const { openConnectModal } = useConnectModal();
+ 
+  // Check if wallet is connected
+  useEffect(() => {
+    if (!currentAddress) {
+      openConnectModal(); // Open connect modal if wallet is not connected
+    }
+  }, [currentAddress]);
+  // Function to interact with contract functions
+  const contractFunction = async ({
+    functionName,
+    methodType,
+    args = [],
+    values = BigInt(0),
+  }: ContractFunctionParams) => {
+    let contract;
+    if (methodType === "read") {
+      // Read method
+      contract = await publicClient?.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: ABI,
+        functionName: functionName,
+        args: args,
+      });
+    } else {
+      // Write method
+      contract = await walletClient?.writeContract({
+        abi: ABI,
+        address: CONTRACT_ADDRESS,
+        functionName: functionName,
+        args: args,
+        account: currentAddress,
+        value: values,
+      });
+
+      // Add recent transaction
+      addRecentTransaction({
+        hash: contract?.toString(),
+        description: `Write ${functionName} to contract`,
+      });
+    }
+    return contract; // Return contract response
+  };
+
+
+
+  return (
+    <ContractContext.Provider value={{ contract: contractFunction ,
+      currentAddress,
+    }}>
+      {children}
+    </ContractContext.Provider>
+  );
+}
