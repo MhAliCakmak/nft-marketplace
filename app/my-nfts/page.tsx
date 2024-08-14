@@ -89,7 +89,7 @@ const MyNFTs = () => {
               alt="creator"
               src={images.creator1}
               className="rounded-full object-cover"
-              objectFit="cover"
+              style={{ objectFit: "cover" }}
             />
           </div>
           <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-2xl mt-6">

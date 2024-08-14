@@ -27,7 +27,7 @@ const PaymentBodyCmp = ({ nft, nftCurrency }) => (
           <Image
             src={nft.image || images[`nft${nft.i}`]}
             layout="fill"
-            objectFit="cover"
+            style={{ objectFit: "cover" }}
           />
         </div>
         <div className="flexCenterStart flex-col ml-5">
@@ -133,7 +133,7 @@ const AssetDetails = () => {
         <div className="relative w-557 minmd:w-2/3 minmd:h-2/3 sm:w-full sm:h-300 h-557 ">
           <Image
             src={nft.image || images[`nft${nft.i}`]}
-            objectFit="cover"
+            style={{ objectFit: "cover" }}
             className="rounded-xl shadow-lg"
             layout="fill"
           />
@@ -155,7 +155,7 @@ const AssetDetails = () => {
             <div className="relative w-12 h-12 minlg:w-20 minlg:h-20 mr-2">
               <Image
                 src={images.creator1}
-                objectFit="cover"
+                style={{ objectFit: "cover" }}
                 className="rounded-full"
               />
             </div>
@@ -249,7 +249,7 @@ const AssetDetails = () => {
               <div className="relative w-52 h-52">
                 <Image
                   src={nft.image || images[`nft${nft.i}`]}
-                  objectFit="cover"
+                  style={{ objectFit: "cover" }}
                   layout="fill"
                 />
               </div>
