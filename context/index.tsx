@@ -69,38 +69,40 @@ export function ContextProvider({
   initialState?: State;
 }) {
   return (
-    <ThemeProvider>
-      <WagmiProvider config={config}>
-        <Toaster position="top-center" /> {/* Toast notification position */}
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider
-            modalSize="compact" // Size of modals
-            locale="en-US" // Locale setting
-            theme={midnightTheme({
-              // Theme customization
-              accentColor: "white",
-              accentColorForeground: "black",
-              borderRadius: "medium",
-              fontStack: "system",
-              overlayBlur: "small",
-            })}
-            showRecentTransactions={true} // Show recent transactions in UI
-            appInfo={{
-              // Application information
-              appName: "CryptoKet",
-              learnMoreUrl: "https://nft-marketplace.mehmetalicakmak.org",
-              disclaimer: Disclaimer, // Disclaimer component
-            }}
-          >
-            <ContractProvider>
-              <Navbar /> {/* Provider for contract-related functionality */}
-              {children}
-              <Footer />
-            </ContractProvider>
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </ThemeProvider>
+    <WagmiProvider config={config}>
+      <Toaster position="top-center" /> {/* Toast notification position */}
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          modalSize="compact" // Size of modals
+          locale="en-US" // Locale setting
+          theme={midnightTheme({
+            // Theme customization
+            accentColor: "white",
+            accentColorForeground: "black",
+            borderRadius: "medium",
+            fontStack: "system",
+            overlayBlur: "small",
+          })}
+          showRecentTransactions={true} // Show recent transactions in UI
+          appInfo={{
+            // Application information
+            appName: "CryptoKet",
+            learnMoreUrl: "https://nft-marketplace.mehmetalicakmak.org",
+            disclaimer: Disclaimer, // Disclaimer component
+          }}
+        >
+          <ContractProvider>
+            <ThemeProvider attribute="class">
+              <div className="dark:bg-nft-dark bg-white min-h-screen">
+                <Navbar />
+                <div className="pt-65">{children}</div>
+                <Footer />
+              </div>
+            </ThemeProvider>
+          </ContractProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 
