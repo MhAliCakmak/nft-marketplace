@@ -173,7 +173,7 @@ const Navbar = () => {
           <ul className="list-none flexCenter flex-row">
             <MenuItems active={active} setActive={setActive} />
           </ul>
-          <div className="ml-4">
+          <div className="ml-2 mr-4">
             <ButtonGroup setActive={setActive} router={router} />
           </div>
           <CustomConnectButton/>
