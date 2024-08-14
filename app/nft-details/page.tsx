@@ -287,4 +287,10 @@ const AssetDetails = () => {
   );
 };
 
-export default AssetDetails;
+export default function DetailsWrapper() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <AssetDetails />
+    </Suspense>
+  );
+}
