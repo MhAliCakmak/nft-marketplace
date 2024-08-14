@@ -57,7 +57,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openAccountModal}
                     type="button"
-                    className="rounded-xl font-poppins  nft-gradient text-white  flex items-center justify-center minlg:text-lg py-2 px-4 minlg:px-8"
+                    className="rounded-xl font-poppins  border-nft-red-violet border-2 dark:text-white text-nft-black-1 flex items-center  minlg:text-lg py-2 px-4 minlg:px-8"
                   >
                     {chain.hasIcon && chain.iconUrl && (
                       <img

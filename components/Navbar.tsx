@@ -133,7 +133,7 @@ const Navbar = () => {
   }, [isOpen]);
 
   return (
-    <nav className="flexBetween w-full fixed z-10 p-4 flex-row border-b dark:bg-nft-dark bg-white dark:border-nft-black-1 border-nft-gray-1">
+    <nav className="flexBetween w-full  p-4 flex-row border-b dark:bg-nft-dark bg-white dark:border-nft-black-1 border-nft-gray-1">
       <div className="flex flex-1 flex-row justify-start">
         <Link href="/">
           <div className="flexCenter md:hidden cursor-pointer" onClick={() => setActive('Explore NFTs')}>
@@ -176,6 +176,7 @@ const Navbar = () => {
           <div className="ml-4">
             <ButtonGroup setActive={setActive} router={router} />
           </div>
+          <CustomConnectButton/>
         </div>
       </div>
 
@@ -209,8 +210,10 @@ const Navbar = () => {
             <div className="flex-1 p-4">
               <MenuItems active={active} setActive={setActive} isMobile setIsOpen={setIsOpen} />
             </div>
-            <div className="p-4 border-t dark:border-nft-black-1 border-nft-gray-1">
+            <div className="p-4 border-t dark:border-nft-black-1 flex justify-between border-nft-gray-1">
               <ButtonGroup setActive={setActive} router={router} />
+              
+            <CustomConnectButton/>
             </div>
           </div>
         )}
