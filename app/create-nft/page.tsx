@@ -8,6 +8,8 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { ContractContext } from "@/context";
 import { parseEther } from "viem";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface FormInput {
   price: string;
@@ -21,13 +23,15 @@ const CreateNFT = () => {
   const [imageType, setImageType] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imgName, setImgName] = useState<string>("");
+  const [isLoadingNFT, setIsLoadingNFT] = useState(false);
+  const router=useRouter()
   const { contract, currentAddress } = useContext(ContractContext);
   const [formInput, setFormInput] = useState<FormInput>({
     price: "",
     name: "",
     description: "",
   });
-  console.log(currentAddress)
+
   const onImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -49,6 +53,15 @@ const CreateNFT = () => {
       alert("Please upload an image");
       return;
     }
+    if (!currentAddress) {
+      alert("Please connect your wallet");
+      return;
+    }
+    if (!formInput.name || !formInput.description || !formInput.price) {
+      alert("Please fill in all fields");
+      return;
+    }
+    setIsLoadingNFT(true);
 
     const data = new FormData();
     data.append("file", image);
@@ -66,9 +79,18 @@ const CreateNFT = () => {
       functionName: "createToken",
       methodType: "write",
       args: [uploadData, formatPrice],
-      values: parseEther("0.0025"),
+      values: parseEther("0.0025")
     });
     console.log(tx);
+    setIsLoadingNFT(false);
+    toast.success("NFT created check the explore page.")
+    setFormInput({
+      price: "",
+      name: "",
+      description: "",
+    })
+    setImage(null)
+    router.push('/');
   };
 
   const fileStyle = useMemo(
@@ -131,32 +153,49 @@ const CreateNFT = () => {
             inputType="input"
             title="Name"
             placeholder="NFT Name"
-            handleClick={(e:any) =>
-              setFormInput({ ...formInput, name: (e.target as HTMLInputElement).value })
+            handleClick={(e: any) =>
+              setFormInput({
+                ...formInput,
+                name: (e.target as HTMLInputElement).value,
+              })
             }
           />
           <Input
             inputType="textarea"
             title="Description"
             placeholder="NFT Description"
-            handleClick={(e:any) =>
-              setFormInput({ ...formInput, description: (e.target as HTMLTextAreaElement).value })
+            handleClick={(e: any) =>
+              setFormInput({
+                ...formInput,
+                description: (e.target as HTMLTextAreaElement).value,
+              })
             }
           />
           <Input
             inputType="number"
             title="Price"
             placeholder="NFT Price"
-            handleClick={(e:any) =>
-              setFormInput({ ...formInput, price: (e.target as HTMLInputElement).value })
+            handleClick={(e: any) =>
+              setFormInput({
+                ...formInput,
+                price: (e.target as HTMLInputElement).value,
+              })
             }
           />
           <div className="mt-7 w-full flex justify-end">
-            <Button
-              btnName="Create NFT"
-              classStyles="rounded-xl"
-              handleClick={handleUpload}
-            />
+            {isLoadingNFT ? (
+              <Button
+                btnName="Loading..."
+                classStyles="rounded-xl"
+                handleClick={handleUpload}
+              />
+            ) : (
+              <Button
+                btnName="Create NFT"
+                classStyles="rounded-xl"
+                handleClick={handleUpload}
+              />
+            )}
           </div>
         </div>
       </div>

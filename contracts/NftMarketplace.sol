@@ -157,13 +157,14 @@ contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
     function createMarketSale(uint256 tokenId) public payable nonReentrant {
         uint price = idToMarketItem[tokenId].price;
         require(msg.value == price, "Please submit the asking price to complete the purchase");
+        address seller = idToMarketItem[tokenId].seller;
         idToMarketItem[tokenId].owner = payable(msg.sender);
         idToMarketItem[tokenId].sold = true;
         idToMarketItem[tokenId].seller = payable(address(0));
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(owner).transfer(listingPrice);
-        payable(idToMarketItem[tokenId].seller).transfer(msg.value);
+        payable(seller).transfer(msg.value);
     }
 
     /**
@@ -191,13 +192,13 @@ contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
      * @dev Returns an array of NFTs owned by the caller.
      * @return An array of NFTs owned by the caller, represented as MarketItem structs.
      */
-    function fetchMyNFTs() public view returns (MarketItem[] memory) {
+    function fetchUserNFTs(address _address) public view returns (MarketItem[] memory) {
         uint totalItemCount = _tokenIds.current();
         uint itemCount = 0;
         uint currentIndex = 0;
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
+            if (idToMarketItem[i + 1].owner == _address) {
                 itemCount += 1;
             }
         }
@@ -205,7 +206,7 @@ contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
         MarketItem[] memory items = new MarketItem[](itemCount);
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
+            if (idToMarketItem[i + 1].owner == _address) {
                 uint currentId = i + 1;
                 MarketItem storage currentItem = idToMarketItem[currentId];
                 items[currentIndex] = currentItem;
@@ -219,13 +220,13 @@ contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
      * @dev Returns an array of NFTs listed by the caller.
      * @return An array of NFTs listed by the caller, represented as MarketItem structs.
      */
-    function fetchItemsListed() public view returns (MarketItem[] memory) {
+    function fetchItemsListed(address _address) public view returns (MarketItem[] memory) {
         uint totalItemCount = _tokenIds.current();
         uint itemCount = 0;
         uint currentIndex = 0;
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].seller == msg.sender) {
+            if (idToMarketItem[i + 1].seller == _address) {
                 itemCount += 1;
             }
         }
@@ -233,7 +234,7 @@ contract NFTMarketplace is ERC721URIStorage,ReentrancyGuard {
         MarketItem[] memory items = new MarketItem[](itemCount);
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].seller == msg.sender) {
+            if (idToMarketItem[i + 1].seller == _address) {
                 uint currentId = i + 1;
                 MarketItem storage currentItem = idToMarketItem[currentId];
                 items[currentIndex] = currentItem;

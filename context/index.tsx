@@ -70,36 +70,36 @@ export function ContextProvider({
 }) {
   return (
     <ThemeProvider>
-    <WagmiProvider config={config}>
-      <Toaster position="top-center" /> {/* Toast notification position */}
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          modalSize="compact" // Size of modals
-          locale="en-US" // Locale setting
-          theme={midnightTheme({
-            // Theme customization
-            accentColor: "white",
-            accentColorForeground: "black",
-            borderRadius: "medium",
-            fontStack: "system",
-            overlayBlur: "small",
-          })}
-          showRecentTransactions={true} // Show recent transactions in UI
-          appInfo={{
-            // Application information
-            appName: "CryptoKet",
-            learnMoreUrl: "https://nft-marketplace.mehmetalicakmak.org",
-            disclaimer: Disclaimer, // Disclaimer component
-          }}
-        >
-          <ContractProvider>
-            <Navbar /> {/* Provider for contract-related functionality */}
-            {children}
-            <Footer/>
-          </ContractProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+      <WagmiProvider config={config}>
+        <Toaster position="top-center" /> {/* Toast notification position */}
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider
+            modalSize="compact" // Size of modals
+            locale="en-US" // Locale setting
+            theme={midnightTheme({
+              // Theme customization
+              accentColor: "white",
+              accentColorForeground: "black",
+              borderRadius: "medium",
+              fontStack: "system",
+              overlayBlur: "small",
+            })}
+            showRecentTransactions={true} // Show recent transactions in UI
+            appInfo={{
+              // Application information
+              appName: "CryptoKet",
+              learnMoreUrl: "https://nft-marketplace.mehmetalicakmak.org",
+              disclaimer: Disclaimer, // Disclaimer component
+            }}
+          >
+            <ContractProvider>
+              <Navbar /> {/* Provider for contract-related functionality */}
+              {children}
+              <Footer />
+            </ContractProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </ThemeProvider>
   );
 }
@@ -110,6 +110,8 @@ export const ContractContext = React.createContext(
     currentAddress: `0x${string}`; // Current
     fetchMyOrListedItems;
     fetchNFTs;
+    getTokenUri;
+    ownerOf;
   }
 );
 
@@ -171,14 +173,16 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     return contract; // Return contract response
   };
 
-  const convertImageUrl = async (uri: string): Promise<string> => {
+  const convertMetadata = async (uri: string): Promise<string> => {
     try {
       const res = await axios.get(
         `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${uri}`
       );
-      const response = res.data.image;
-      const https = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${response}`;
-      return https;
+      const name = res.data.name;
+      const description = res.data.description;
+      const image = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${res.data.image}`;
+
+      return { name: name, description: description, image: image };
     } catch (error) {
       console.error("Error converting image URL:", error);
       throw error;
@@ -191,7 +195,7 @@ export function ContractProvider({ children }: { children: ReactNode }) {
       methodType: "read",
       args: [id],
     });
-    return convertImageUrl(tokenUri);
+    return convertMetadata(tokenUri);
   };
 
   const fetchMyOrListedItems = async (type: string) => {
@@ -216,9 +220,11 @@ export function ContractProvider({ children }: { children: ReactNode }) {
           const tokenUri = await getTokenUri(Number(item.tokenId));
           return {
             tokenId: Number(item.tokenId),
+            name: tokenUri.name,
+            description: tokenUri.description,
             price: formatEther(item.price),
             seller: item.seller,
-            image: tokenUri,
+            image: tokenUri.image,
             owner: item.owner,
             sold: item.sold,
           };
@@ -230,7 +236,7 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const fetchNFTs= async ()=>{
+  const fetchNFTs = async () => {
     try {
       const tx = await contractFunction({
         functionName: "fetchMarketItems",
@@ -241,9 +247,11 @@ export function ContractProvider({ children }: { children: ReactNode }) {
           const tokenUri = await getTokenUri(Number(item.tokenId));
           return {
             tokenId: Number(item.tokenId),
+            name: tokenUri.name,
+            description: tokenUri.description,
             price: formatEther(item.price),
             seller: item.seller,
-            image: tokenUri,
+            image: tokenUri.image,
             owner: item.owner,
             sold: item.sold,
           };
@@ -253,14 +261,29 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error fetching items listed:", error);
     }
-  }
+  };
+
+  const ownerOf = async (id) => {
+    try {
+      const tx = await contractFunction({
+        functionName: "ownerOf",
+        methodType: "read",
+        args: [id],
+      });
+      return tx;
+    } catch (error) {
+      console.error("Error fetching items listed:", error);
+    }
+  };
   return (
     <ContractContext.Provider
       value={{
         contract: contractFunction,
         currentAddress: currentAddress,
         fetchMyOrListedItems,
-        fetchNFTs
+        fetchNFTs,
+        getTokenUri,
+        ownerOf,
       }}
     >
       {children}

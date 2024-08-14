@@ -11,7 +11,7 @@ import SearchBar from "@/components/SearchBar";
 import NFTCard from "@/components/NFTCard";
 import { shortenAddress } from "@/utils/shortenAddress";
 import { ContractContext } from "@/context";
-import { formatUnits } from "viem";
+
 
 const MyNFTs = () => {
   const { fetchMyOrListedItems, currentAddress } = useContext(ContractContext);
@@ -23,6 +23,7 @@ const MyNFTs = () => {
   useEffect(() => {
     if(!currentAddress) return;
     fetchMyOrListedItems('my').then((data) => {
+      console.log(data)
       setNfts(data);
       setIsLoading(false);
     });

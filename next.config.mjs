@@ -14,7 +14,7 @@ const nextConfig = {
         ignoreBuildErrors: true,
     },
     images: {
-        domains: ['res.cloudinary.com', 'lh3.googleusercontent.com'],
+        domains: ['res.cloudinary.com', 'lh3.googleusercontent.com',"amethyst-ideal-opossum-716.mypinata.cloud"],
     },
 };
 
