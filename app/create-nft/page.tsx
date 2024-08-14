@@ -7,7 +7,7 @@ import images from "../../assets";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { ContractContext } from "@/context";
-import { formatEther, parseEther } from "viem";
+import { parseEther } from "viem";
 
 interface FormInput {
   price: string;
@@ -21,13 +21,13 @@ const CreateNFT = () => {
   const [imageType, setImageType] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imgName, setImgName] = useState<string>("");
-  const { contract } = useContext(ContractContext);
+  const { contract, currentAddress } = useContext(ContractContext);
   const [formInput, setFormInput] = useState<FormInput>({
     price: "",
     name: "",
     description: "",
   });
-
+  console.log(currentAddress)
   const onImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {

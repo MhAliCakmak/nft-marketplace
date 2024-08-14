@@ -27,6 +27,9 @@ import { ABI, CONTRACT_ADDRESS } from "../constants";
 import { formatEther, recoverMessageAddress } from "viem";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
+import axios from "axios";
+import { Footer } from "@/components";
+import { ThemeProvider } from "next-themes";
 
 // Retrieve default wallets from RainbowKit
 const { wallets } = getDefaultWallets();
@@ -66,6 +69,7 @@ export function ContextProvider({
   initialState?: State;
 }) {
   return (
+    <ThemeProvider>
     <WagmiProvider config={config}>
       <Toaster position="top-center" /> {/* Toast notification position */}
       <QueryClientProvider client={queryClient}>
@@ -83,20 +87,20 @@ export function ContextProvider({
           showRecentTransactions={true} // Show recent transactions in UI
           appInfo={{
             // Application information
-            appName: "Green Scan Techs",
-            learnMoreUrl: "https://green-dashboard.com/",
+            appName: "CryptoKet",
+            learnMoreUrl: "https://nft-marketplace.mehmetalicakmak.org",
             disclaimer: Disclaimer, // Disclaimer component
           }}
         >
           <ContractProvider>
-          <Navbar />
-            {" "}
-            {/* Provider for contract-related functionality */}
+            <Navbar /> {/* Provider for contract-related functionality */}
             {children}
+            <Footer/>
           </ContractProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
+    </ThemeProvider>
   );
 }
 
@@ -104,6 +108,8 @@ export const ContractContext = React.createContext(
   {} as {
     contract: (params: ContractFunctionParams) => Promise<any>; // Function to interact with contract
     currentAddress: `0x${string}`; // Current
+    fetchMyOrListedItems;
+    fetchNFTs;
   }
 );
 
@@ -122,7 +128,7 @@ export function ContractProvider({ children }: { children: ReactNode }) {
   const { address: currentAddress } = useAccount(); // Hook for current account address
   const addRecentTransaction = useAddRecentTransaction(); // Hook for adding recent transaction
   const { openConnectModal } = useConnectModal();
- 
+
   // Check if wallet is connected
   useEffect(() => {
     if (!currentAddress) {
@@ -165,12 +171,98 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     return contract; // Return contract response
   };
 
-  
+  const convertImageUrl = async (uri: string): Promise<string> => {
+    try {
+      const res = await axios.get(
+        `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${uri}`
+      );
+      const response = res.data.image;
+      const https = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${response}`;
+      return https;
+    } catch (error) {
+      console.error("Error converting image URL:", error);
+      throw error;
+    }
+  };
 
+  const getTokenUri = async (id: number) => {
+    const tokenUri = await contractFunction({
+      functionName: "tokenURI",
+      methodType: "read",
+      args: [id],
+    });
+    return convertImageUrl(tokenUri);
+  };
+
+  const fetchMyOrListedItems = async (type: string) => {
+    try {
+      let tx;
+      if (type === "my") {
+        tx = await contractFunction({
+          functionName: "fetchUserNFTs",
+          methodType: "read",
+          args: [currentAddress],
+        });
+      } else if (type === "listed") {
+        tx = await contractFunction({
+          functionName: "fetchItemsListed",
+          methodType: "read",
+          args: [currentAddress],
+        });
+      }
+
+      const allItems = await Promise.all(
+        tx.map(async (item) => {
+          const tokenUri = await getTokenUri(Number(item.tokenId));
+          return {
+            tokenId: Number(item.tokenId),
+            price: formatEther(item.price),
+            seller: item.seller,
+            image: tokenUri,
+            owner: item.owner,
+            sold: item.sold,
+          };
+        })
+      );
+      return allItems;
+    } catch (error) {
+      console.error("Error fetching items listed:", error);
+    }
+  };
+
+  const fetchNFTs= async ()=>{
+    try {
+      const tx = await contractFunction({
+        functionName: "fetchMarketItems",
+        methodType: "read",
+      });
+      const allItems = await Promise.all(
+        tx.map(async (item) => {
+          const tokenUri = await getTokenUri(Number(item.tokenId));
+          return {
+            tokenId: Number(item.tokenId),
+            price: formatEther(item.price),
+            seller: item.seller,
+            image: tokenUri,
+            owner: item.owner,
+            sold: item.sold,
+          };
+        })
+      );
+      return allItems;
+    } catch (error) {
+      console.error("Error fetching items listed:", error);
+    }
+  }
   return (
-    <ContractContext.Provider value={{ contract: contractFunction ,
-      currentAddress,
-    }}>
+    <ContractContext.Provider
+      value={{
+        contract: contractFunction,
+        currentAddress: currentAddress,
+        fetchMyOrListedItems,
+        fetchNFTs
+      }}
+    >
       {children}
     </ContractContext.Provider>
   );

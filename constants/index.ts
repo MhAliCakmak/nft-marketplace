@@ -1,5 +1,5 @@
 import abi from "./abi.json";
 
-export const CONTRACT_ADDRESS = "0x87767615D8bf7aE06645CF25c61Ca292136EF956";
+export const CONTRACT_ADDRESS = "0x55f4cF446A61f2f49480245721E28591bA4a9736";
 export const ABI = abi;
 

@@ -19,7 +19,8 @@ interface ButtonGroupProps {
 const ButtonGroup = ({ setActive, router, setIsOpen }: ButtonGroupProps) => {
   const { currentAddress } = useContext(ContractContext);
 
-  return currentAddress && (
+  return (
+    currentAddress && (
       <Button
         btnName="Create"
         classStyles="mx-2 rounded-xl"
@@ -29,7 +30,8 @@ const ButtonGroup = ({ setActive, router, setIsOpen }: ButtonGroupProps) => {
           setIsOpen(false);
         }}
       />
-  )
+    )
+  );
 };
 
 interface MenuItemsProps {
@@ -96,7 +98,7 @@ const checkActive = (
     case "/":
       if (active !== "Explore NFTs") setActive("Explore NFTs");
       break;
-    case "/created-nfts":
+    case "/listed-nfts":
       if (active !== "Listed NFTs") setActive("Listed NFTs");
       break;
     case "/my-nfts":
@@ -116,9 +118,6 @@ const Navbar = () => {
   const [active, setActive] = useState<string>("Explore NFTs");
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    setTheme("dark");
-  }, []);
 
   useEffect(() => {
     checkActive(active, setActive, router);
@@ -135,58 +134,35 @@ const Navbar = () => {
 
   return (
     <nav className="flexBetween w-full  p-4 flex-row border-b dark:bg-nft-dark bg-white dark:border-nft-black-1 border-nft-gray-1">
-      <div className="flex flew-1 flex-row justify-start">
+      <div className="flex flex-1 flex-row justify-start">
         <Link href="/">
-          <div
-            className="flexCenter md:hidden cursor-pointer"
-            onClick={() => {}}
-          >
-            <Image
-              src={images.logo02}
-              style={{
-                objectFit: "contain",
-              }}
-              width={32}
-              height={32}
-              alt="logo"
-            />
-            <p className="dark:text-white text-nft-black-1 font-semibold text-lg ml-1">
-              CryptoKet
-            </p>
+          <div className="flexCenter md:hidden cursor-pointer" onClick={() => setActive('Explore NFTs')}>
+            <Image src={images.logo02} objectFit="contain" width={32} height={32} alt="logo" />
+            <p className=" dark:text-white text-nft-black-1 font-semibold text-lg ml-1">CryptoKet</p>
           </div>
         </Link>
         <Link href="/">
           <div
             className="hidden md:flex"
             onClick={() => {
-              setActive("Explore NFTs");
+              setActive('Explore NFTs');
               setIsOpen(false);
             }}
           >
-            <Image
-              src={images.logo02}
-              style={{
-                objectFit: "contain",
-              }}
-              width={32}
-              height={32}
-              alt="logo"
-            />
+            <Image src={images.logo02} objectFit="contain" width={32} height={32} alt="logo" />
           </div>
         </Link>
       </div>
+
       <div className="flex flex-initial flex-row justify-end">
         <div className="flex items-center mr-2">
           <input
             type="checkbox"
             className="checkbox"
             id="checkbox"
-            onChange={() => setTheme(theme === "light" ? "dark" : "light")}
+            onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
           />
-          <label
-            htmlFor="checkbox"
-            className="flexBetween w-8 h-4 bg-black rounded-2xl p-1 relative label"
-          >
+          <label htmlFor="checkbox" className="flexBetween w-8 h-4 bg-black rounded-2xl p-1 relative label">
             <i className="fas fa-sun" />
             <i className="fas fa-moon" />
             <div className="w-3 h-3 absolute bg-white rounded-full ball" />
@@ -197,54 +173,44 @@ const Navbar = () => {
           <ul className="list-none flexCenter flex-row">
             <MenuItems active={active} setActive={setActive} />
           </ul>
-          <div className="mx-4">
+          <div className="ml-4">
             <ButtonGroup setActive={setActive} router={router} />
           </div>
-          <CustomConnectButton/>
         </div>
       </div>
-      <div className="hidden md:flex  ml-2 ">
-        {isOpen ? (
-          <Image
-            src={images.cross}
-            style={{
-              objectFit: "cover",
-            }}
-            width={20}
-            height={20}
-            alt="close"
-            onClick={() => setIsOpen(false)}
-            className={theme === "light" ? "filter invert" : ""}
-          />
-        ) : (
-          <Image
-            src={images.menu}
-            style={{
-              objectFit: "contain",
-            }}
-            width={25}
-            height={25}
-            alt="open"
-            onClick={() => setIsOpen(true)}
-            className={theme === "light" ? "filter invert" : ""}
-          />
-        )}
+
+      <div className="hidden md:flex ml-2">
+        {!isOpen
+          ? (
+            <Image
+              src={images.menu}
+              objectFit="contain"
+              width={25}
+              height={25}
+              alt="menu"
+              onClick={() => setIsOpen(!isOpen)}
+              className={theme === 'light' ? 'filter invert' : undefined}
+            />
+          )
+          : (
+            <Image
+              src={images.cross}
+              objectFit="contain"
+              width={20}
+              height={20}
+              alt="close"
+              onClick={() => setIsOpen(!isOpen)}
+              className={theme === 'light' ? 'filter invert' : undefined}
+            />
+          )}
+
         {isOpen && (
           <div className="fixed inset-0 top-65 dark:bg-nft-dark bg-white z-10 nav-h flex justify-between flex-col">
             <div className="flex-1 p-4">
-              <MenuItems
-                active={active}
-                setActive={setActive}
-                setIsOpen={setIsOpen}
-                isMobile
-              />
+              <MenuItems active={active} setActive={setActive} isMobile setIsOpen={setIsOpen} />
             </div>
             <div className="p-4 border-t dark:border-nft-black-1 border-nft-gray-1">
-              <ButtonGroup
-                router={router}
-                setIsOpen={setIsOpen}
-                setActive={setActive}
-              />
+              <ButtonGroup setActive={setActive} router={router} />
             </div>
           </div>
         )}
@@ -252,5 +218,4 @@ const Navbar = () => {
     </nav>
   );
 };
-
 export default Navbar;
