@@ -68,7 +68,7 @@ const CreateNFT = () => {
     data.append("name", formInput.name);
     data.append("description", formInput.description);
 
-    const uploadRequest = await fetch("/api/files", {
+    const uploadRequest = await fetch("/api/file", {
       method: "POST",
       body: data,
     });
