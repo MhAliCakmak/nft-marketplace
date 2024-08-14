@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useContext } from "react";
+import { Suspense, useEffect, useState, useContext } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ContractContext } from "@/context";
@@ -12,23 +12,22 @@ const ResellNFT = () => {
     useContext(ContractContext);
   const [price, setPrice] = useState(null);
   const [image, setImage] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
   const [isLoadingNFT, setIsLoadingNFT] = useState(false);
   const router = useRouter();
-  const isOwner = false;
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const currentPrice = searchParams.get("price");
 
   const fetchNFT = async () => {
     if (!id) return;
     const owner = await ownerOf(id);
     if (owner !== currentAddress) {
-      toast.error("You are not owner this NFT.");
+      toast.error("You are not the owner of this NFT.");
       router.push("/my-nfts");
+      return;
     }
+    setIsOwner(true);
     const { image } = await getTokenUri(id);
-    //@ts-ignore
-    setPrice(currentPrice);
     setImage(image);
   };
 
@@ -42,9 +41,6 @@ const ResellNFT = () => {
       if (!price || isNaN(price) || price <= 0) {
         return toast.error("Invalid price");
       }
-      if (price == currentPrice) {
-        return toast.error("Price is same as current price");
-      }
       setIsLoadingNFT(true);
       await contract({
         functionName: "resellToken",
@@ -53,7 +49,6 @@ const ResellNFT = () => {
         values: parseEther("0.0025"),
       });
       toast.success("NFT resold successfully.");
-      setIsLoadingNFT(false);
       router.push("/my-nfts");
     } catch (e) {
       toast.error("Failed to resell NFT.");
@@ -98,7 +93,7 @@ const ResellNFT = () => {
       ) : (
         <div className="w-3/5 md:w-full">
           <h1 className="font-poppins dark:text-white text-nft-black-1 font-semibold text-2xl">
-           
+            You are not the owner of this NFT
           </h1>
         </div>
       )}
@@ -106,4 +101,10 @@ const ResellNFT = () => {
   );
 };
 
-export default ResellNFT;
+export default function ResellNFTWrapper() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <ResellNFT />
+    </Suspense>
+  );
+}
